@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Görüntü Sahteciliği Tespiti</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Proje 2</p>
+        <h1>Görüntünün Değiştirilip Değiştirilmediğinin Tespiti</h1>
+        <p class="muted">SIFT, SURF, AKAZE, ORB + AI-CNN ve AI-LSTM analizleri ile karar üretir.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <form method="post" enctype="multipart/form-data" class="upload-form">
+        <div class="field">
+          <label>Orijinal Görsel <span>(opsiyonel)</span></label>
+          <input type="file" name="original_image" accept="image/*">
+          <small>Boş bırakırsan tek görsel üzerinden copy-move analizi yapılır.</small>
+        </div>
+        <div class="field">
+          <label>Şüpheli Görsel <span>(zorunlu)</span></label>
+          <input type="file" name="suspect_image" accept="image/*" required>
+        </div>
+        <button type="submit">Analiz Et</button>
+      </form>
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    </section>
+
+    {% if payload %}
+    <section class="result-header {{ 'bad' if payload.decision.tampered else 'good' }}">
+      <div>
+        <p class="eyebrow">{{ payload.mode }}</p>
+        <h2>{{ payload.decision.label }}</h2>
+        <p>Genel güven skoru: <strong>%{{ payload.decision.confidence }}</strong> | Pozitif algoritma: {{ payload.decision.positive_algorithms }}/{{ payload.decision.total_algorithms }}</p>
+      </div>
+    </section>
+
+    <section class="grid two">
+      {% if payload.original_url %}
+      <div class="card image-card"><h3>Orijinal</h3><img src="{{ payload.original_url }}" alt="Orijinal"></div>
+      {% endif %}
+      <div class="card image-card"><h3>Şüpheli</h3><img src="{{ payload.suspect_url }}" alt="Şüpheli"></div>
+    </section>
+
+    <section class="card">
+      <h3>Algoritma Sonuçları</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Algoritma</th>
+              <th>Karar</th>
+              <th>Güven</th>
+              <th>Detay</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in payload.results %}
+            <tr>
+              <td>{{ r.algorithm }}</td>
+              <td><span class="pill {{ 'bad' if r.tampered else 'good' }}">{{ 'Şüpheli' if r.tampered else 'Temiz' }}</span></td>
+              <td>%{{ r.confidence }}</td>
+              <td>{{ r.message }}
+                {% if r.changed_area is defined %} | Değişen alan: %{{ r.changed_area }}{% endif %}
+                {% if r.matches is defined %} | Eşleşme: {{ r.matches }}{% endif %}
+                {% if r.cluster_matches is defined %} | Küme: {{ r.cluster_matches }}{% endif %}
+                {% if r.anomaly_ratio is defined %} | Anomali: %{{ r.anomaly_ratio }}{% endif %}
+                {% if r.sequence_anomaly is defined %} | Sıralı anomali: %{{ r.sequence_anomaly }}{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid visuals">
+      {% for v in payload.visuals %}
+      <div class="card image-card">
+        <h3>{{ v.algorithm }} Görsel Çıktı</h3>
+        <img src="{{ v.url }}" alt="{{ v.algorithm }} sonucu">
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>
