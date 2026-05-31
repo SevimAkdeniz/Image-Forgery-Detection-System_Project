@@ -62,6 +62,7 @@ Projede teorik olarak yapay zeka tabanlı yöntemler de ele alınmıştır. CNN 
 
 ## Proje Klasör Yapısı
 
+```txt
 proje2_goruntu_sahtecilik/
 │
 ├── run.py
@@ -81,6 +82,7 @@ proje2_goruntu_sahtecilik/
 │       ├── uploads/
 │       ├── results/
 │       └── style.css
+```
 
 ## Kurulum
 
